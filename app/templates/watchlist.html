@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Watchlist | InvestIQ AI{% endblock %}
+{% from "_macros.html" import skeleton_rows, splash_cover %}
+{% block description %}The stocks you are watching, with each rule-based system's current state.{% endblock %}
+{% block splash %}{{ splash_cover() }}{% endblock %}
+
+{% block content %}
+<section class="stock-head">
+  <h1>Watchlist</h1>
+  <p class="explainer">The stocks you are keeping an eye on, with each system's state for the newest completed week. <strong>DEVELOPING</strong> (Trend Following conditions building) and <strong>ARMED</strong> (a Value Buy stop-buy waiting) are emphasised. These are rule readings, not recommendations.</p>
+</section>
+
+<div id="watchlist" class="watchlist">
+  <form id="watch-add" class="inline-form">
+    <label for="watch-symbol">Add a stock</label>
+    <select id="watch-symbol">
+      {% for symbol, name in stocks.items() %}<option value="{{ symbol }}">{{ name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn">Add</button>
+  </form>
+  <p id="watch-error" class="form-error" role="alert" hidden></p>
+  <div id="watch-table" aria-live="polite"><div class="table-scroll"><table class="trade-log"><tbody>{{ skeleton_rows(2, 5) }}</tbody></table></div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api.js" defer></script>
+<script src="/static/js/signal_style.js" defer></script>
+<script src="/static/js/watchlist.js" defer></script>
+{% endblock %}

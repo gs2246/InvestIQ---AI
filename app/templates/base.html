@@ -1,0 +1,41 @@
+{% from "_macros.html" import social_meta, skeleton_rows, splash_cover %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}InvestIQ AI{% endblock %}</title>
+  {% block social %}{{ social_meta(request, self.title(), self.description()) }}{% endblock %}
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  {% block splash %}{% endblock %}
+  <header class="site-header">
+    <div class="page">
+      <a class="brand" href="/">InvestIQ <span class="brand-ai">AI</span></a>
+      <span class="tagline">Algorithms calculate. AI explains.</span>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/screener">Screener</a>
+        <a href="/portfolio">Portfolio</a>
+        <a href="/watchlist">Watchlist</a>
+        <a href="/journal">Journal</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="page">
+      <p class="disclaimer">Educational project. Not financial advice, and not a recommendation to buy or sell anything.</p>
+      <p class="credit">Charts drawn with TradingView Lightweight Charts&trade;. Prices are a one-time download from Yahoo Finance, never live.</p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
+{# Preview text for the social tags. Pages override this block; it is only READ (via
+   self.description() above) and never printed here, hence the "if false". #}
+{% if false %}{% block description %}An educational app about five Indian stocks: fixed, checkable rules calculate every figure, and an AI only explains them.{% endblock %}{% endif %}

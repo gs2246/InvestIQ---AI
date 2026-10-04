@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Portfolio backtest | InvestIQ AI{% endblock %}
+{% from "_macros.html" import skeleton_rows, splash_cover %}
+{% block description %}Trend Following on five Indian stocks at once, against simply buying and holding them, with hypothetical money.{% endblock %}
+{% block splash %}{{ splash_cover() }}{% endblock %}
+
+{% block content %}
+<section class="stock-head">
+  <p class="crumb"><a href="/">&larr; All stocks</a></p>
+  <h1>Portfolio backtest</h1>
+  <p class="explainer">Trend Following run on all five stocks at once. The starting capital is split equally, one fifth per stock. Each stock's share is traded on its own and is never moved to another stock. The portfolio value is simply the five values added together.</p>
+</section>
+
+<section id="portfolio-backtest" class="backtest">
+  <p class="hypothetical"><strong>All money here is hypothetical.</strong> This is a simulation of the rules on past prices, not real trades. It ignores brokerage, taxes and slippage. Each trade is assumed at the weekly close the signal formed on.</p>
+  <div class="capital-row">
+    <label for="portfolio-capital">Total starting capital (&#8377;)</label>
+    <input id="portfolio-capital" class="capital-input figure" type="text" inputmode="decimal" value="{{ default_capital }}" autocomplete="off">
+    <span class="bt-status subtle" aria-live="polite"></span>
+  </div>
+  <p class="form-error" role="alert" hidden></p>
+
+  <div class="ledger-layout bt-layout">
+    <div class="bt-summary-box ledger-main" aria-live="polite"><div class="skeleton-lines"><span class="skeleton skeleton-text"></span><span class="skeleton skeleton-text mid"></span><span class="skeleton skeleton-text short"></span></div></div>
+    <aside class="margin-note bt-note" aria-label="Margin note on the portfolio backtest" hidden></aside>
+  </div>
+
+  <h2>Equity curve</h2>
+  <div class="equity-chart"></div>
+  <ul class="chart-legend compact" aria-label="Equity curve legend">
+    <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="sma-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>The five stocks' Trend Following capital, added together</span></li>
+    <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="zone-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>Buying all five and holding them over the same weeks</span></li>
+  </ul>
+
+  <h2>Stock by stock</h2>
+  <div class="bt-stocks-box"><div class="table-scroll"><table class="trade-log"><tbody>{{ skeleton_rows(5, 7) }}</tbody></table></div></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/lightweight-charts.js" defer></script>
+<script src="/static/js/backtest_view.js" defer></script>
+<script src="/static/js/portfolio.js" defer></script>
+{% endblock %}

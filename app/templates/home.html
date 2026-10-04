@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}InvestIQ AI{% endblock %}
+{% from "_macros.html" import skeleton_rows, splash_cover %}
+{% block description %}An educational app about five Indian stocks: fixed, checkable rules calculate every figure, and an AI only explains them.{% endblock %}
+{% block splash %}{{ splash_cover() }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>InvestIQ AI</h1>
+  <p class="lead">Algorithms calculate; AI explains. Every price, indicator, signal and backtest on this site is worked out by fixed, checkable rules, and the same numbers come out every time. The AI never calculates anything. It only explains figures that were already worked out, and it never sees raw prices, so it cannot invent a number.</p>
+  <p>Calculated figures are printed in ink. Explanations sit in the margin in brass, like notes pencilled beside a ledger. The three trading systems come from a handwritten trading notebook. The app reports what those rules say and how they would have done in the past, never what anyone should buy or sell.</p>
+</section>
+
+<section aria-labelledby="tiles-heading">
+  <h2 id="tiles-heading">The five stocks</h2>
+  <p id="tiles-status" class="subtle" aria-live="polite"><span class="skeleton skeleton-text mid"></span></p>
+  <ul id="stock-tiles" class="tile-grid">
+    {% for symbol, name in stocks.items() %}
+    <li class="tile" data-symbol="{{ symbol }}">
+      <a href="/stock/{{ symbol }}" class="tile-link">
+        <span class="tile-name">{{ name }}</span>
+        <span class="tile-symbol figure">{{ symbol }}</span>
+        <span class="tile-price figure" data-field="price"><span class="skeleton skeleton-text mid"></span></span>
+        <span class="tile-state"><span class="tile-label">Trend Following</span> <span data-field="system1"><span class="skeleton skeleton-text short"></span></span></span>
+        <span class="tile-state"><span class="tile-label">Value Buy</span> <span data-field="value_buy"><span class="skeleton skeleton-text short"></span></span></span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section aria-labelledby="explore-heading">
+  <h2 id="explore-heading">Explore</h2>
+  <ul class="tile-grid explore-grid">
+    <li class="tile"><a href="/screener" class="tile-link"><span class="tile-name">Screener</span><span class="tile-desc">All five stocks in one table, filtered by RSI and by each system's state.</span></a></li>
+    <li class="tile"><a href="/portfolio" class="tile-link"><span class="tile-name">Portfolio</span><span class="tile-desc">Trend Following on all five stocks at once, against simply buying and holding them.</span></a></li>
+    <li class="tile"><a href="/watchlist" class="tile-link"><span class="tile-name">Watchlist</span><span class="tile-desc">The stocks you are keeping an eye on, with each system's current state.</span></a></li>
+    <li class="tile"><a href="/journal" class="tile-link"><span class="tile-name">Journal</span><span class="tile-desc">Your real trades, with holdings worked out first in, first out.</span></a></li>
+  </ul>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api.js" defer></script>
+<script src="/static/js/signal_style.js" defer></script>
+<script src="/static/js/home.js" defer></script>
+{% endblock %}

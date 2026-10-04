@@ -1,0 +1,42 @@
+{# Shared page pieces. Import with: {% from "_macros.html" import social_meta, skeleton_rows, splash_cover %} #}
+
+{# Open Graph + Twitter preview tags. URLs are built from the incoming request (absolute, and
+   https when a proxy says so), never hard-coded. #}
+{% macro social_meta(request, title, description) -%}
+  <meta name="description" content="{{ description }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="InvestIQ AI">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="{{ absolute_url(request, request.url.path) }}">
+  <meta property="og:image" content="{{ absolute_url(request, '/static/og-image.png') }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="InvestIQ AI: algorithms calculate, AI explains.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:description" content="{{ description }}">
+  <meta name="twitter:image" content="{{ absolute_url(request, '/static/og-image.png') }}">
+{%- endmacro %}
+
+{# Placeholder table rows shaped like the real rows, shown until the data arrives. #}
+{% macro skeleton_rows(rows=3, cols=4) -%}
+  {% for r in range(rows) %}<tr class="skeleton-row">{% for c in range(cols) %}<td><span class="skeleton skeleton-text"></span></td>{% endfor %}</tr>{% endfor %}
+{%- endmacro %}
+
+{# A title cover over the page while its data loads. splash.js lifts it once no request is in
+   flight and no skeleton is visible. Three escape hatches make sure it can never strand anyone:
+   1. <noscript> hides it when JavaScript is off;
+   2. an inline timer removes it after 35 s even if splash.js never loads;
+   3. splash.js's own failsafe lifts it after 25 s (always sooner than the inline timer). #}
+{% macro splash_cover() -%}
+  <div id="splash" class="splash" role="status" aria-live="polite" aria-label="Loading InvestIQ AI">
+    <div class="splash-inner">
+      <p class="splash-title">InvestIQ <span class="brand-ai">AI</span></p>
+      <p class="splash-tag">Algorithms calculate. AI explains.</p>
+    </div>
+  </div>
+  <noscript><style>#splash { display: none !important; }</style></noscript>
+  <script>setTimeout(function () { var s = document.getElementById("splash"); if (s) s.remove(); }, 35000);</script>
+  <script src="/static/js/splash.js" defer></script>
+{%- endmacro %}

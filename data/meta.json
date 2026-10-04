@@ -1,0 +1,4 @@
+{
+  "downloaded_on": "2026-10-03",
+  "note": "Date the one-time Yahoo download ran. A weekly or monthly bar is complete only if its label date is before this date. Written by scripts/download_data.py."
+}

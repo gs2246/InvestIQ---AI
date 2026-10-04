@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Trade journal | InvestIQ AI{% endblock %}
+{% from "_macros.html" import skeleton_rows, splash_cover %}
+{% block description %}A journal for your real trades, with holdings worked out first in, first out.{% endblock %}
+{% block splash %}{{ splash_cover() }}{% endblock %}
+
+{% block content %}
+<section class="stock-head">
+  <h1>Trade journal</h1>
+  <p class="explainer">A record of <strong>real trades you have made</strong>, kept separate from the hypothetical backtests. Holdings are worked out from these entries using FIFO (first in, first out): a sale uses up your earliest shares first, which is how Indian tax law calculates gains on shares.</p>
+</section>
+
+<section id="holdings" aria-labelledby="holdings-heading">
+  <h2 id="holdings-heading">Your holdings</h2>
+  <div id="holdings-box" aria-live="polite"><div class="skeleton-lines"><span class="skeleton skeleton-text"></span><span class="skeleton skeleton-text mid"></span><span class="skeleton skeleton-text short"></span></div></div>
+</section>
+
+<section id="journal" aria-labelledby="journal-add-heading">
+  <h2 id="journal-add-heading">Add an entry</h2>
+  <form id="journal-form" class="journal-form" novalidate>
+    <div class="field">
+      <label for="j-symbol">Stock</label>
+      <select id="j-symbol" name="symbol">
+        {% for symbol, name in stocks.items() %}<option value="{{ symbol }}">{{ name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="j-side">Side</label>
+      <select id="j-side" name="side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+    </div>
+    <div class="field">
+      <label for="j-qty">Quantity (shares)</label>
+      <input id="j-qty" name="quantity" class="figure" type="text" inputmode="numeric" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="j-price">Price per share (&#8377;)</label>
+      <input id="j-price" name="price" class="figure" type="text" inputmode="decimal" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="j-date">Trade date</label>
+      <input id="j-date" name="trade_date" class="figure" type="date" value="{{ today }}" max="{{ today }}">
+    </div>
+    <div class="field field-wide">
+      <label for="j-notes">Notes (optional)</label>
+      <input id="j-notes" name="notes" type="text" maxlength="1000" autocomplete="off">
+    </div>
+    <div class="field-actions"><button type="submit" class="btn" id="j-submit">Add entry</button></div>
+  </form>
+  <p id="journal-error" class="form-error" role="alert" hidden></p>
+
+  <h2>All entries</h2>
+  <div id="journal-table" aria-live="polite"><div class="table-scroll"><table class="trade-log"><tbody>{{ skeleton_rows(3, 7) }}</tbody></table></div></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api.js" defer></script>
+<script src="/static/js/backtest_view.js" defer></script>
+<script src="/static/js/journal.js" defer></script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Screener | InvestIQ AI{% endblock %}
+{% from "_macros.html" import skeleton_rows, splash_cover %}
+{% block description %}All five stocks in one table: RSI zone and trend, and each rule-based system's current state, with filters.{% endblock %}
+{% block splash %}{{ splash_cover() }}{% endblock %}
+
+{% block content %}
+<section class="stock-head">
+  <h1>Screener</h1>
+  <p class="explainer">All five stocks side by side, using the newest completed week in the data. Narrow the table with the filters. Every value here was calculated by the app's rules, and none of it is a recommendation.</p>
+</section>
+
+<section id="screener" aria-label="Screener">
+  <form id="screener-filters" class="filters" aria-label="Filters">
+    <div class="field">
+      <label for="f-rsi_zone">RSI zone</label>
+      <select id="f-rsi_zone" data-filter="rsi_zone">
+        <option value="">All</option>
+        {% for v in filters.rsi_zone %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-rsi_trend">RSI trend</label>
+      <select id="f-rsi_trend" data-filter="rsi_trend">
+        <option value="">All</option>
+        {% for v in filters.rsi_trend %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-system1">Trend Following</label>
+      <select id="f-system1" data-filter="system1">
+        <option value="">All</option>
+        {% for v in filters.system1 %}<option value="{{ v }}">{{ v }}{% if v == "DEVELOPING" %} (building){% endif %}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-value_buy">Value Buy</label>
+      <select id="f-value_buy" data-filter="value_buy">
+        <option value="">All</option>
+        {% for v in filters.value_buy %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field-actions"><button type="reset" class="btn btn-quiet" id="f-reset">Clear filters</button></div>
+  </form>
+
+  <p id="screener-count" class="subtle" aria-live="polite"></p>
+  <div class="table-scroll">
+    <table class="trade-log screener-table">
+      <thead>
+        <tr>
+          <th scope="col">Stock</th><th scope="col">Weekly close</th><th scope="col">RSI(14)</th>
+          <th scope="col">RSI zone</th><th scope="col">RSI trend</th>
+          <th scope="col">Trend Following</th><th scope="col">Value Buy</th>
+        </tr>
+      </thead>
+      <tbody id="screener-body">
+        {{ skeleton_rows(5, 7) }}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api.js" defer></script>
+<script src="/static/js/signal_style.js" defer></script>
+<script src="/static/js/screener.js" defer></script>
+{% endblock %}

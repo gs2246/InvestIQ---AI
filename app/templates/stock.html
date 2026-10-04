@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% from "_macros.html" import skeleton_rows, splash_cover %}
+{% block title %}{{ name }} | InvestIQ AI{% endblock %}
+{% block description %}{{ name }} ({{ symbol }}): price chart with RSI, three rule-based trading systems with hypothetical backtests, and an AI that only explains the computed figures.{% endblock %}
+{% block splash %}{{ splash_cover() }}{% endblock %}
+
+{% block content %}
+<section class="stock-head">
+  <p class="crumb"><a href="/">&larr; All stocks</a></p>
+  <h1>{{ name }}</h1>
+  <p class="meta"><span class="figure">{{ symbol }}</span> &middot; {{ exchange }} &middot; prices adjusted for splits and dividends</p>
+</section>
+
+<aside id="orientation" class="orientation-note" aria-label="Getting started" hidden>
+  <p>New here? The <a href="/screener">Screener</a> shows all five stocks side by side, with each system's current state, and is a good place to start.</p>
+  <button type="button" class="btn btn-quiet" id="orientation-dismiss">Got it</button>
+</aside>
+
+<div id="page-error" class="page-error" role="alert" hidden></div>
+
+<section id="stands-today" class="stands-today" aria-labelledby="stands-heading">
+  <h2 id="stands-heading">Where {{ name }} stands today</h2>
+  <ul class="stands-list">
+    <li data-system="system1"><span class="stands-system">Trend Following</span><span class="stands-desc"><span class="skeleton skeleton-text mid"></span></span></li>
+    <li data-system="value_buy"><span class="stands-system">Value Buy</span><span class="stands-desc"><span class="skeleton skeleton-text mid"></span></span></li>
+    <li data-system="cup"><span class="stands-system">Cup &amp; Handle</span><span class="stands-desc"><span class="skeleton skeleton-text mid"></span></span></li>
+  </ul>
+</section>
+
+<section class="chart-section" aria-labelledby="chart-heading" data-symbol="{{ symbol }}">
+  <div class="chart-toolbar">
+    <h2 id="chart-heading">Price chart</h2>
+    <div class="tf-switch" role="group" aria-label="Candle timeframe">
+      <button type="button" data-timeframe="daily" aria-pressed="false">Daily</button>
+      <button type="button" data-timeframe="weekly" aria-pressed="true">Weekly</button>
+      <button type="button" data-timeframe="monthly" aria-pressed="false">Monthly</button>
+    </div>
+  </div>
+
+  <label id="marker-toggle-wrap" class="marker-toggle" hidden>
+    <input type="checkbox" id="marker-toggle" checked>
+    <span>Show trade markers</span>
+  </label>
+
+  <p id="chart-readout" class="chart-readout figure">Move the pointer over the chart to read a bar.</p>
+
+  <div class="chart-wrap">
+    <div id="price-chart" class="chart chart-price"></div>
+    <div id="chart-loading" class="skeleton skeleton-chart" role="status" aria-label="Loading chart"></div>
+  </div>
+  <div class="chart-wrap">
+    <div id="rsi-chart" class="chart chart-rsi"></div>
+  </div>
+
+  <ul class="chart-legend" aria-label="Chart legend">
+    <li>
+      <svg class="legend-candle" viewBox="0 0 14 22" aria-hidden="true"><line class="wick up" x1="7" y1="1" x2="7" y2="21"/><rect class="body up" x="2.5" y="5" width="9" height="12"/></svg>
+      <span><strong>Filled candle:</strong> the period closed at or above where it opened.</span>
+    </li>
+    <li>
+      <svg class="legend-candle" viewBox="0 0 14 22" aria-hidden="true"><line class="wick down" x1="7" y1="1" x2="7" y2="21"/><rect class="body down" x="2.5" y="5" width="9" height="12"/></svg>
+      <span><strong>Hollow candle, dark red outline:</strong> the period closed below where it opened.</span>
+    </li>
+    <li>
+      <svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="sma-line" x1="0" y1="6" x2="28" y2="6"/></svg>
+      <span><strong id="legend-sma-label">{{ sma_period }}-week average:</strong> the simple average of the last {{ sma_period }} closing prices.</span>
+    </li>
+    <li data-weekly-only hidden>
+      <svg class="legend-arrow up" viewBox="0 0 14 14" aria-hidden="true"><polygon points="7,1 13,13 1,13"/></svg>
+      <span><strong>Green up arrow:</strong> a Trend Following BUY signal formed on this week's close.</span>
+    </li>
+    <li data-weekly-only hidden>
+      <svg class="legend-arrow down" viewBox="0 0 14 14" aria-hidden="true"><polygon points="1,1 13,1 7,13"/></svg>
+      <span><strong>Dark red down arrow:</strong> a Trend Following SELL signal: the weekly close fell below the average.</span>
+    </li>
+    <li>
+      <svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="zone-line" x1="0" y1="6" x2="28" y2="6"/></svg>
+      <span><strong>Lower pane:</strong> RSI(14). The dotted lines at 40 and 60 mark the zone boundaries.</span>
+    </li>
+  </ul>
+</section>
+
+<section class="ledger-layout" aria-labelledby="readings-heading">
+  <div class="ledger-main">
+    <h2 id="readings-heading">Latest weekly reading</h2>
+    <p class="subtle">The newest weekly bar in the downloaded data: week ending <span class="figure">{{ reading.week_ending }}</span>.</p>
+    <table class="readings">
+      <tbody>
+        <tr><th scope="row">Closing price</th><td class="figure">{{ reading.close | inr }}</td></tr>
+        {% if reading.sma is not none %}
+        <tr><th scope="row">{{ sma_period }}-week average</th><td class="figure">{{ reading.sma | inr }}</td></tr>
+        <tr><th scope="row">Close versus average</th><td class="figure">{{ "%+.1f"|format(reading.vs_sma_pct) }}%</td></tr>
+        {% endif %}
+        {% if reading.rsi is not none %}
+        <tr><th scope="row">RSI(14)</th><td class="figure">{{ "%.2f"|format(reading.rsi) }}</td></tr>
+        <tr><th scope="row">RSI zone</th><td>{{ reading.rsi_zone }}</td></tr>
+        <tr><th scope="row">RSI trend</th><td>{{ reading.rsi_trend or "n/a" }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% if reading.zone_note or reading.trend_note %}
+  <aside class="margin-note" aria-label="Margin note on the RSI readings">
+    {% if reading.zone_note %}<p>{{ reading.zone_note }}</p>{% endif %}
+    {% if reading.trend_note %}<p>{{ reading.trend_note }}</p>{% endif %}
+  </aside>
+  {% endif %}
+</section>
+
+<section class="system-section" aria-labelledby="system1-heading">
+  <h2 id="system1-heading">Trend Following</h2>
+  <div class="ledger-layout">
+    <div class="ledger-main">
+      <p class="explainer">This system buys strength. It enters when RSI climbs above 60 while the weekly close is above the {{ sma_period }}-week average, and it exits when a weekly close falls below that average. The average works as a trailing stop. There is no price target.</p>
+      <p class="subtle">The system is checked on Mondays, once the previous week's candle has closed. Only completed weeks are evaluated: the reading below refers to the newest completed week in the data, and prices are a one-time download, not today's market.</p>
+      <div id="system1-current" aria-live="polite"><table class="readings"><tbody>{{ skeleton_rows(5, 2) }}</tbody></table></div>
+    </div>
+    <aside id="system1-note" class="margin-note" aria-label="Margin note on the Trend Following signal" hidden></aside>
+  </div>
+
+  <div id="system1-backtest" class="backtest" data-symbol="{{ symbol }}">
+    <h3>Backtest: these rules on this stock's past prices</h3>
+    <p class="hypothetical"><strong>All money here is hypothetical.</strong> This is a simulation of the rules on past prices, not real trades. It ignores brokerage, taxes and slippage. Each trade is assumed at the weekly close the signal formed on.</p>
+    <div class="capital-row">
+      <label for="system1-capital">Starting capital (&#8377;)</label>
+      <input id="system1-capital" class="capital-input figure" type="text" inputmode="decimal" value="{{ default_capital }}" autocomplete="off">
+      <span class="bt-status subtle" aria-live="polite"></span>
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <div class="ledger-layout bt-layout">
+      <div class="bt-summary-box ledger-main" aria-live="polite"><div class="skeleton-lines"><span class="skeleton skeleton-text"></span><span class="skeleton skeleton-text mid"></span><span class="skeleton skeleton-text short"></span></div></div>
+      <aside class="margin-note bt-note" aria-label="Margin note on the backtest" hidden></aside>
+    </div>
+    <h4>Equity curve</h4>
+    <div class="equity-chart"></div>
+    <ul class="chart-legend compact" aria-label="Equity curve legend">
+      <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="sma-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>This system's capital, week by week</span></li>
+      <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="zone-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>Buy and hold over the same weeks</span></li>
+    </ul>
+    <h4>Trade log</h4>
+    <div class="bt-trades-box"><div class="table-scroll"><table class="trade-log"><tbody>{{ skeleton_rows(3, 6) }}</tbody></table></div></div>
+  </div>
+</section>
+
+<section id="value-buy" class="system-section" aria-labelledby="value-buy-heading" data-symbol="{{ symbol }}">
+  <h2 id="value-buy-heading">Value Buy &mdash; technical pullback entry</h2>
+  <p class="not-fundamental"><strong>This is not fundamental value investing.</strong> It uses no P/E ratio, no book value and no company financials. &ldquo;Value&rdquo; here only means buying a pullback on the price chart.</p>
+  <div class="ledger-layout">
+    <div class="ledger-main">
+      <p class="explainer">Unlike Trend Following, which buys strength, this system buys weakness. When monthly RSI is between 38 and 45 and rising, a green weekly candle arms a stop-buy at that candle's high. The trade has a fixed stop at the candle's low and a defined target at the recent swing high. If the stop-buy is not triggered within two weeks, it lapses.</p>
+      <p class="subtle">Only completed weeks and months are evaluated, and prices are a one-time download, not today's market.</p>
+      <div id="value-buy-current" aria-live="polite"><table class="readings"><tbody>{{ skeleton_rows(5, 2) }}</tbody></table></div>
+    </div>
+    <aside id="value-buy-note" class="margin-note" aria-label="Margin note on the Value Buy reading" hidden></aside>
+  </div>
+
+  <div class="backtest">
+    <h3>Backtest: these rules on this stock's past prices</h3>
+    <p class="hypothetical"><strong>All money here is hypothetical.</strong> This is a simulation of the rules on past prices, not real trades. It ignores brokerage, taxes and slippage. Entries fill at the stop-buy level, and exits fill at the stop or target level. If one week touches both, the stop is assumed to come first.</p>
+    <div class="capital-row">
+      <label for="value-buy-capital">Starting capital (&#8377;)</label>
+      <input id="value-buy-capital" class="capital-input figure" type="text" inputmode="decimal" value="{{ default_capital }}" autocomplete="off">
+      <span class="bt-status subtle" aria-live="polite"></span>
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <div class="ledger-layout bt-layout">
+      <div class="bt-summary-box ledger-main" aria-live="polite"><div class="skeleton-lines"><span class="skeleton skeleton-text"></span><span class="skeleton skeleton-text mid"></span><span class="skeleton skeleton-text short"></span></div></div>
+      <aside class="margin-note bt-note" aria-label="Margin note on the Value Buy backtest" hidden></aside>
+    </div>
+    <h4>Equity curve</h4>
+    <div class="equity-chart"></div>
+    <ul class="chart-legend compact" aria-label="Equity curve legend">
+      <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="sma-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>This system's capital, week by week</span></li>
+      <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="zone-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>Buy and hold over the same weeks</span></li>
+    </ul>
+    <h4>Trade log</h4>
+    <div class="bt-trades-box"><div class="table-scroll"><table class="trade-log"><tbody>{{ skeleton_rows(3, 6) }}</tbody></table></div></div>
+  </div>
+</section>
+
+<section id="cup" class="system-section cup-section" aria-labelledby="cup-heading" data-symbol="{{ symbol }}">
+  <h2 id="cup-heading">Cup &amp; Handle &mdash; long-term base pattern</h2>
+  <div class="ledger-layout">
+    <div class="ledger-main">
+      <p class="explainer">On monthly candles, this system looks for a cup lasting at least five years: a long, rounded dip whose right rim recovers to within 8% of the left rim, followed by a short, shallow handle. The buy point is the handle's high. A stop-buy sits 4% above it, and the stop sits 24% below it.</p>
+      <p class="cup-honesty"><strong>Detection is approximate.</strong> A detected shape is only ever shown as a <em>possible</em> cup formation for you to review on the monthly chart. It is never a buy signal, and its price levels appear only after you confirm it.</p>
+      <div id="cup-status" aria-live="polite"><div class="skeleton-lines"><span class="skeleton skeleton-text"></span><span class="skeleton skeleton-text mid"></span><span class="skeleton skeleton-text short"></span></div></div>
+      <p id="cup-error" class="form-error" role="alert" hidden></p>
+    </div>
+    <aside id="cup-note" class="margin-note" aria-label="Margin note on Cup &amp; Handle" hidden></aside>
+  </div>
+
+  <div class="backtest">
+    <h3>Backtest: these rules on this stock's past prices</h3>
+    <p class="hypothetical"><strong>All money here is hypothetical.</strong> This is a simulation of the rules on past monthly prices, not real trades. It ignores brokerage, taxes and slippage. Entries fill at the stop-buy level, and sales fill at their target or stop levels. If one month touches both, the stop is assumed to come first. A trade that sells in parts is counted as one blended trade, so the equity curve moves as if the whole position were held until its last part is sold, and then shows the blended result.</p>
+    <div class="capital-row">
+      <label for="cup-capital">Starting capital (&#8377;)</label>
+      <input id="cup-capital" class="capital-input figure" type="text" inputmode="decimal" value="{{ default_capital }}" autocomplete="off">
+      <label for="cup-mode">Selling ladder</label>
+      <select id="cup-mode">
+        <option value="income">Income: sell &#8531; at +10% and &#8531; at +20%</option>
+        <option value="wealth">Wealth: sell &#8531; at +20% and &#8531; at +40%, rising stop</option>
+        <option value="trail">Trail: no partial sales, rising stop</option>
+      </select>
+      <span class="bt-status subtle" aria-live="polite"></span>
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <div class="ledger-layout bt-layout">
+      <div class="bt-summary-box ledger-main" aria-live="polite"><div class="skeleton-lines"><span class="skeleton skeleton-text"></span><span class="skeleton skeleton-text mid"></span><span class="skeleton skeleton-text short"></span></div></div>
+      <aside class="margin-note bt-note" aria-label="Margin note on the Cup &amp; Handle backtest" hidden></aside>
+    </div>
+    <h4>Equity curve</h4>
+    <div class="equity-chart"></div>
+    <ul class="chart-legend compact" aria-label="Equity curve legend">
+      <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="sma-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>This system's capital, month by month</span></li>
+      <li><svg class="legend-line" viewBox="0 0 28 12" aria-hidden="true"><line class="zone-line" x1="0" y1="6" x2="28" y2="6"/></svg><span>Buy and hold over the same months</span></li>
+    </ul>
+    <h4>Trade log</h4>
+    <div class="bt-trades-box"><div class="table-scroll"><table class="trade-log"><tbody>{{ skeleton_rows(3, 6) }}</tbody></table></div></div>
+  </div>
+</section>
+
+<section id="position-size" class="system-section" aria-labelledby="calc-heading">
+  <h2 id="calc-heading">Position size calculator</h2>
+  <p class="explainer"><strong>Arithmetic, not a recommendation.</strong> This works out how many shares keep a possible loss within a chosen share of your capital, if the price fell from the entry to the stop. Entry starts at the latest weekly close, and stop starts at the 20-week average. Change any number; it recalculates as you type.</p>
+  <form id="calc-form" class="calc-form" novalidate>
+    <div class="field">
+      <label for="calc-capital">Capital (&#8377;)</label>
+      <input id="calc-capital" class="figure" type="text" inputmode="decimal" value="{{ default_capital }}" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="calc-risk">Risk per trade (%)</label>
+      <input id="calc-risk" class="figure" type="text" inputmode="decimal" value="2" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="calc-entry">Entry price (&#8377;)</label>
+      <input id="calc-entry" class="figure" type="text" inputmode="decimal" value="{{ '%.2f'|format(reading.close) }}" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="calc-stop">Stop price (&#8377;)</label>
+      <input id="calc-stop" class="figure" type="text" inputmode="decimal" value="{{ '%.2f'|format(reading.sma) if reading.sma is not none else '' }}" autocomplete="off">
+    </div>
+  </form>
+  <div id="calc-result" class="calc-result" aria-live="polite"></div>
+</section>
+
+<section id="ai-chat" class="system-section chat" aria-labelledby="chat-heading" data-symbol="{{ symbol }}"
+         data-configured="{{ 'true' if ai_configured else 'false' }}">
+  <h2 id="chat-heading">Ask about {{ name }}</h2>
+  <p class="explainer">The AI here only explains the figures this page has already calculated. It cannot see raw prices, it does not invent numbers, and it will not tell you to buy, sell or hold. Answers are about {{ name }} only.</p>
+  <div id="chat-log" class="chat-log" aria-live="polite"></div>
+  {% if ai_configured %}
+  <form id="chat-form" class="chat-form" autocomplete="off">
+    <label for="chat-input" class="visually-hidden">Your question about {{ name }}</label>
+    <textarea id="chat-input" rows="2" maxlength="1000" placeholder="For example: why is the Trend Following signal neutral?"></textarea>
+    <button type="submit" id="chat-send">Ask</button>
+  </form>
+  <p id="chat-error" class="form-error" role="alert" hidden></p>
+  {% else %}
+  <p class="chat-unavailable" role="status">{{ ai_not_configured_message }}</p>
+  {% endif %}
+</section>
+
+<section id="watch-toggle" class="system-section watch-toggle" aria-label="Watchlist" data-symbol="{{ symbol }}">
+  <button type="button" class="btn" hidden aria-pressed="false">Add to watchlist</button>
+  <span class="watch-status subtle" aria-live="polite">Checking your watchlist&hellip;</span>
+  <a href="/watchlist" class="watch-link">Open the watchlist</a>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/lightweight-charts.js" defer></script>
+<script src="/static/js/signal_style.js" defer></script>
+<script src="/static/js/api.js" defer></script>
+<script src="/static/js/backtest_view.js" defer></script>
+<script src="/static/js/stands_today.js" defer></script>
+<script src="/static/js/orientation.js" defer></script>
+<script src="/static/js/chart.js" defer></script>
+<script src="/static/js/system1.js" defer></script>
+<script src="/static/js/system1_backtest.js" defer></script>
+<script src="/static/js/value_buy.js" defer></script>
+<script src="/static/js/cup.js" defer></script>
+<script src="/static/js/position_size.js" defer></script>
+<script src="/static/js/chat.js" defer></script>
+<script src="/static/js/watch_toggle.js" defer></script>
+{% endblock %}

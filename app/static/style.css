@@ -1,0 +1,389 @@
+/* The Ledger: a printed financial record annotated by hand.
+   Ink = computed. Brass = the margin voice (explanations, AI). Never brass for a computed state.
+   No shadows, no floating cards, no dark mode. Hairline rules only. */
+
+@font-face { font-family: "IBM Plex Serif"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("/static/fonts/IBMPlexSerif-Regular.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Serif"; font-weight: 600; font-style: normal; font-display: swap;
+  src: url("/static/fonts/IBMPlexSerif-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("/static/fonts/IBMPlexSans-Regular.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-style: normal; font-display: swap;
+  src: url("/static/fonts/IBMPlexSans-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("/static/fonts/IBMPlexMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-style: normal; font-display: swap;
+  src: url("/static/fonts/IBMPlexMono-SemiBold.woff2") format("woff2"); }
+
+:root {
+  --paper: #f5f1e6;
+  --ink: #1a1a1a;
+  --brass: #a6763d;
+  --forest: #1e5631;
+  --oxblood: #4a0e0e;
+  --hairline: rgba(26, 26, 26, 0.18);
+
+  --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", system-ui, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+
+  --gutter: 16px;
+  --page-width: 1120px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+h1, h2 { font-weight: 600; line-height: 1.25; margin: 0 0 0.5rem; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.25rem; }
+p { margin: 0 0 0.75rem; }
+a { color: var(--ink); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Figures: always monospaced with tabular digits so columns line up. */
+.figure { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.subtle { font-size: 0.92rem; }
+
+/* ---- Site frame ------------------------------------------------------- */
+.site-header { border-bottom: 1px solid var(--hairline); padding: 0.9rem 0; }
+.site-header .page { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1.25rem; }
+@media (max-width: 720px) { .site-nav { margin-left: 0; width: 100%; } }
+.brand { font-weight: 600; font-size: 1.2rem; text-decoration: none; }
+.brand-ai { font-family: var(--mono); font-weight: 600; }
+.tagline { font-size: 0.9rem; }
+
+main.page { padding-top: 1.75rem; padding-bottom: 2.5rem; }
+
+.site-footer { border-top: 1px solid var(--hairline); padding: 1rem 0 2rem; font-size: 0.85rem; }
+.site-footer p { margin-bottom: 0.35rem; }
+.site-footer .credit { font-size: 0.8rem; }
+
+/* ---- Home ------------------------------------------------------------- */
+.hero { max-width: 44rem; margin-bottom: 2rem; }
+.lead { font-size: 1.1rem; }
+
+.stock-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
+.stock-list li { border-bottom: 1px solid var(--hairline); }
+.stock-list a { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0.25rem; text-decoration: none; }
+.stock-list a:hover .stock-name { text-decoration: underline; }
+.stock-symbol { font-size: 0.9rem; }
+
+/* ---- Stock page ------------------------------------------------------- */
+.stock-head { margin-bottom: 1.25rem; }
+.crumb { font-size: 0.9rem; margin-bottom: 0.5rem; }
+.meta { font-size: 0.92rem; }
+
+.page-error {
+  border: 1px solid var(--oxblood);
+  border-left-width: 4px;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 1rem;
+  font-family: var(--sans);
+}
+.page-error[hidden] { display: none; }
+
+.chart-section { margin-bottom: 2.5rem; }
+.chart-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; }
+.chart-toolbar h2 { margin: 0; }
+
+.tf-switch { display: inline-flex; border: 1px solid var(--ink); }
+.tf-switch button {
+  font: inherit;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  background: var(--paper);
+  color: var(--ink);
+  border: 0;
+  border-right: 1px solid var(--ink);
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  min-height: 40px;
+}
+.tf-switch button:last-child { border-right: 0; }
+.tf-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); font-weight: 600; }
+.tf-switch button:disabled { cursor: progress; }
+
+.chart-readout { font-size: 0.85rem; margin: 0.6rem 0 0.4rem; min-height: 1.5em; overflow-wrap: anywhere; }
+
+.chart-wrap { position: relative; width: 100%; }
+.chart { width: 100%; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.chart-price { height: 420px; }
+.chart-rsi { height: 150px; border-top: 0; }
+
+.chart-legend { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; gap: 0.5rem; font-size: 0.9rem; }
+.chart-legend li { display: flex; gap: 0.7rem; align-items: center; }
+.legend-candle { width: 14px; height: 22px; flex: none; }
+.legend-line { width: 28px; height: 12px; flex: none; }
+.legend-candle .wick.up, .legend-candle .body.up { stroke: var(--forest); }
+.legend-candle .body.up { fill: var(--forest); }
+.legend-candle .wick.down, .legend-candle .body.down { stroke: var(--oxblood); }
+.legend-candle .body.down { fill: var(--paper); }
+.legend-candle line, .legend-candle rect { stroke-width: 1.5; }
+.legend-line .sma-line { stroke: var(--ink); stroke-width: 2; }
+.legend-line .zone-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 2 3; }
+
+.marker-toggle { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.7rem; font-family: var(--sans); font-size: 0.9rem; cursor: pointer; }
+.marker-toggle[hidden] { display: none; }
+.marker-toggle input { width: 1.1rem; height: 1.1rem; accent-color: var(--ink); }
+[data-weekly-only][hidden] { display: none; }
+
+.legend-arrow { width: 14px; height: 14px; flex: none; }
+.legend-arrow.up { fill: var(--forest); }
+.legend-arrow.down { fill: var(--oxblood); }
+
+/* ---- Signal states (look defined once in static/js/signal_style.js) ----- */
+.signal { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--mono); letter-spacing: 0.02em; }
+.signal-shape { width: 0.8em; height: 0.8em; fill: currentColor; flex: none; }
+.signal-buy, .signal-hold { color: var(--forest); font-weight: 600; }
+.signal-sell { color: var(--oxblood); font-weight: 600; }
+.signal-emphasis { color: var(--ink); font-weight: 600; }
+.signal-neutral { color: var(--ink); font-weight: 400; }
+
+.system-section { margin-bottom: 2.5rem; }
+.explainer { max-width: 44rem; }
+.not-fundamental { max-width: 44rem; border-left: 4px solid var(--ink); padding: 0.4rem 0.9rem; font-size: 1.02rem; }
+.system-section + .system-section { border-top: 1px solid var(--ink); padding-top: 1.5rem; }
+.inline-error { border-left: 4px solid var(--oxblood); padding: 0.4rem 0.8rem; font-family: var(--sans); }
+
+/* ---- Backtests (all money hypothetical) --------------------------------- */
+h3 { font-size: 1.1rem; font-weight: 600; margin: 1.75rem 0 0.5rem; }
+h4 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+.backtest { border-top: 1px solid var(--hairline); margin-top: 1.5rem; }
+.hypothetical { max-width: 44rem; font-size: 0.95rem; }
+.capital-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin: 0.9rem 0 0.4rem; }
+.capital-row label { font-family: var(--sans); font-size: 0.92rem; }
+.capital-input {
+  font-size: 1rem; width: 11rem; max-width: 100%;
+  padding: 0.45rem 0.6rem; min-height: 40px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 0;
+}
+.capital-input[aria-invalid="true"] { border-color: var(--oxblood); border-width: 2px; }
+.form-error { color: var(--oxblood); font-family: var(--sans); font-size: 0.92rem; font-weight: 600; }
+.form-error[hidden] { display: none; }
+
+.bt-summary { border-collapse: collapse; margin-top: 0.75rem; }
+.bt-summary th, .bt-summary td { padding: 0.45rem 0.8rem 0.45rem 0; border-bottom: 1px solid var(--hairline); text-align: left; white-space: nowrap; }
+.bt-summary th[scope="col"] { font-family: var(--sans); font-size: 0.85rem; font-weight: 600; }
+.bt-summary th[scope="row"] { font-weight: 400; }
+.bt-facts { margin: 0.75rem 0 0; padding-left: 1.1rem; font-size: 0.95rem; }
+.bt-facts li { margin-bottom: 0.3rem; }
+.muted { opacity: 0.65; }
+
+.ret { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.ret-shape { width: 0.7em; height: 0.7em; fill: currentColor; flex: none; }
+.ret-up { color: var(--forest); }
+.ret-down { color: var(--oxblood); }
+
+.equity-chart { height: 260px; width: 100%; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.chart-legend.compact { margin-top: 0.6rem; }
+
+.trade-log { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.trade-log th, .trade-log td { padding: 0.4rem 0.7rem 0.4rem 0; border-bottom: 1px solid var(--hairline); text-align: left; white-space: nowrap; }
+.trade-log thead th { font-family: var(--sans); font-size: 0.82rem; font-weight: 600; border-bottom: 1px solid var(--ink); }
+.open-tag { font-family: var(--sans); font-weight: 600; }
+.empty-state { font-style: italic; padding: 0.75rem 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.more-link { margin-top: 1.25rem; }
+
+/* ---- AI chat: the user in ink and serif, the AI in brass and sans ------- */
+.chat-log { border-top: 1px solid var(--hairline); margin-top: 1rem; max-width: 46rem; }
+.chat-turn { border-bottom: 1px solid var(--hairline); padding: 0.7rem 0; }
+.chat-who { display: block; font-family: var(--sans); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.2rem; }
+.chat-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-user { color: var(--ink); font-family: var(--serif); }
+.chat-ai { color: var(--brass); font-family: var(--sans); padding-left: 1rem; }
+.chat-pending .chat-text { font-style: italic; }
+.chat-form { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; max-width: 46rem; }
+.chat-form textarea {
+  flex: 1 1 18rem; min-width: 0; min-height: 3.2rem;
+  font: inherit; font-size: 1rem; padding: 0.5rem 0.6rem;
+  background: var(--paper); color: var(--ink); border: 1px solid var(--ink); border-radius: 0; resize: vertical;
+}
+.chat-form button {
+  font-family: var(--sans); font-size: 0.95rem; font-weight: 600;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 0;
+  padding: 0.5rem 1.2rem; min-height: 44px; cursor: pointer;
+}
+.chat-form button:disabled { opacity: 0.6; cursor: progress; }
+.chat-unavailable { border-left: 4px solid var(--ink); padding: 0.4rem 0.9rem; font-family: var(--sans); max-width: 46rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---- Home tiles and Explore grid: ruled cells divided by hairlines, not cards ---- */
+.tile-grid {
+  list-style: none; margin: 0.75rem 0 2.25rem; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  border-top: 1px solid var(--hairline); border-left: 1px solid var(--hairline);
+}
+.tile { border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); min-width: 0; }
+.tile-link { display: flex; flex-direction: column; gap: 0.3rem; height: 100%; padding: 0.9rem 1rem; text-decoration: none; }
+.tile-link:hover .tile-name { text-decoration: underline; }
+.tile-name { font-weight: 600; font-size: 1.05rem; }
+.tile-symbol { font-size: 0.8rem; }
+.tile-price { font-size: 1.15rem; margin: 0.2rem 0; }
+/* label always above its state, so every tile reads the same whatever the state's length */
+.tile-state { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; font-size: 0.9rem; }
+.tile-label { font-family: var(--sans); font-size: 0.78rem; }
+.tile-desc { font-size: 0.93rem; }
+.explore-grid { grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+
+/* ---- Screener ---------------------------------------------------------------------- */
+.filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.8rem 1rem; margin: 0.5rem 0 1rem; max-width: 60rem; }
+/* The empty-state row spans the whole (scrollable) table; keep its message pinned to the
+   visible part of the box and wrapped to the screen, so it is never cut off on a phone. */
+.screener-table .empty-row td { white-space: normal; }
+.screener-table .empty-row .empty-state { position: sticky; left: 0; max-width: calc(100vw - 2 * var(--gutter)); }
+
+/* ---- Cup & Handle: quiet styling, never a signal badge ------------------------------ */
+.cup-honesty { max-width: 44rem; font-size: 0.95rem; }
+.cup-quiet { font-family: var(--serif); color: var(--ink); }
+.cup-possible strong { font-weight: 600; letter-spacing: 0.01em; }
+.cup-confirmed { margin-top: 1rem; }
+
+/* ---- Loading: skeletons shaped like the content, and the splash cover -------------- */
+.skeleton { display: inline-block; background: rgba(26, 26, 26, 0.08); border-radius: 0; animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.skeleton[hidden] { display: none; }
+.skeleton-text { width: 100%; max-width: 100%; height: 0.95em; vertical-align: middle; }
+.skeleton-text.short { width: 40%; }
+.skeleton-text.mid { width: 70%; }
+.skeleton-lines { display: grid; gap: 0.55rem; margin: 0.6rem 0; }
+.skeleton-row td { padding: 0.55rem 0.7rem 0.55rem 0; border-bottom: 1px solid var(--hairline); }
+/* the chart placeholder covers the chart area; z-index 100 keeps it above the chart canvas */
+.skeleton-chart { position: absolute; inset: 0; z-index: 100; display: block; background: #e4e0d6; /* paper with 8% ink, opaque so the half-drawn chart stays hidden */ }
+@keyframes skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+.splash {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--paper); color: var(--ink);
+  transition: opacity 0.3s ease;
+}
+.splash-lifting { opacity: 0; pointer-events: none; }
+.splash-inner { text-align: center; padding: 0 var(--gutter); }
+.splash-title { font-family: var(--serif); font-weight: 600; font-size: 2.4rem; margin: 0 0 0.4rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--ink); }
+.splash-tag { font-family: var(--sans); font-size: 0.95rem; margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  .splash { transition: none; }
+}
+
+/* ---- Error page, first-visit note, "where it stands today", position size ---------- */
+.error-page { max-width: 40rem; padding: 2rem 0 3rem; }
+.error-code { font-size: 3rem; margin: 0; }
+
+.orientation-note { border: 1px solid var(--ink); border-left-width: 4px; padding: 0.7rem 1rem; margin-bottom: 1.25rem; max-width: 46rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.orientation-note[hidden] { display: none; }
+.orientation-note p { margin: 0; flex: 1 1 18rem; }
+
+.stands-today { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--hairline); padding: 0.75rem 0; margin-bottom: 1.5rem; }
+.stands-today h2 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+.stands-list { list-style: none; margin: 0; padding: 0; }
+.stands-list li { display: flex; flex-wrap: wrap; gap: 0.2rem 0.75rem; align-items: baseline; padding: 0.35rem 0; border-bottom: 1px solid var(--hairline); }
+.stands-list li:last-child { border-bottom: 0; }
+.stands-system { font-family: var(--sans); font-size: 0.85rem; min-width: 9.5rem; }
+.stands-desc { flex: 1 1 14rem; }
+.stands-quiet { color: var(--ink); }
+
+.calc-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: 0.8rem 1rem; max-width: 50rem; margin: 0.75rem 0; }
+.calc-result { max-width: 46rem; }
+.calc-shares { font-size: 1.35rem; margin: 0.4rem 0; }
+.calc-working { list-style: none; padding: 0; margin: 0.5rem 0; font-size: 0.95rem; }
+.calc-working li { padding: 0.15rem 0; }
+
+/* ---- Navigation, buttons and forms ----------------------------------------- */
+.site-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; margin-left: auto; font-family: var(--sans); font-size: 0.92rem; }
+.btn {
+  font-family: var(--sans); font-size: 0.92rem; font-weight: 600;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 0;
+  padding: 0.45rem 1rem; min-height: 40px; cursor: pointer;
+}
+.btn:disabled { opacity: 0.6; cursor: progress; }
+.btn[hidden] { display: none; }
+.btn-quiet { background: var(--paper); color: var(--ink); font-weight: 400; min-height: 34px; padding: 0.25rem 0.7rem; }
+.inline-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin-bottom: 1rem; }
+.inline-form[hidden], .journal-form[hidden] { display: none; }
+.inline-form label, .field label { font-family: var(--sans); font-size: 0.9rem; }
+select, .field input {
+  font: inherit; font-size: 1rem; min-height: 40px; padding: 0.35rem 0.5rem;
+  background: var(--paper); color: var(--ink); border: 1px solid var(--ink); border-radius: 0; max-width: 100%;
+}
+.journal-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.8rem 1rem; margin: 0.75rem 0; max-width: 56rem; }
+.field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.field-wide { grid-column: 1 / -1; }
+.field-actions { display: flex; align-items: flex-end; }
+.side { font-family: var(--mono); font-weight: 600; }
+.notes-cell { white-space: normal; min-width: 10rem; }
+.totals { margin-top: 0.75rem; }
+.watch-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+#holdings { margin-bottom: 2rem; }
+.inline-error ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+
+/* ---- The ledger layout: ink on the left, margin note on the right ------- */
+.ledger-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  column-gap: 2.5rem;
+  align-items: start;
+  margin-bottom: 2rem;
+}
+.margin-note {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--brass);
+  border-left: 1px solid var(--brass);
+  padding-left: 1rem;
+  margin-top: 0.25rem;
+}
+.margin-note p:last-child { margin-bottom: 0; }
+.margin-note[hidden] { display: none; }
+.bt-layout { margin-bottom: 0; }
+
+.readings { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
+.readings th, .readings td { padding: 0.5rem 0.25rem; border-bottom: 1px solid var(--hairline); vertical-align: baseline; }
+.readings th { text-align: left; font-weight: 400; }
+.readings td { text-align: right; }
+.readings tr:first-child th, .readings tr:first-child td { border-top: 1px solid var(--hairline); }
+
+/* Wide tables scroll inside their own box, never the page. */
+/* position: relative keeps anything absolutely positioned inside (e.g. a visually hidden
+   column heading) inside the scroll box; without it, it can widen the whole page on a phone. */
+.table-scroll { overflow-x: auto; position: relative; }
+
+@media (max-width: 720px) {
+  body { font-size: 16px; }
+  h1 { font-size: 1.6rem; }
+  /* Collapse: each margin note sits directly beneath the figure it annotates,
+     still brass and still indented. */
+  .ledger-layout { grid-template-columns: minmax(0, 1fr); row-gap: 0.5rem; }
+  .margin-note { margin-left: 0.75rem; margin-bottom: 0.5rem; }
+  .chart-price { height: 300px; }
+  .chart-rsi { height: 130px; }
+  /* Keep "this system" and "buy and hold" side by side on a phone: never scrolled out of view. */
+  .bt-summary { font-size: 0.85rem; width: 100%; }
+  .bt-summary th, .bt-summary td { padding-right: 0.45rem; }
+  .bt-summary th[scope="row"] { white-space: normal; }
+  .tf-switch { width: 100%; }
+  .tf-switch button { flex: 1; }
+}
